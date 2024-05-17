@@ -7,7 +7,6 @@ use Illuminate\Http\File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
-use RealRashid\SweetAlert\Facades\Alert;
 
 class NewsController extends Controller
 {
@@ -19,7 +18,7 @@ class NewsController extends Controller
     {
         $news =  News::latest()->paginate('3');
 
-        return view('admin.news.index', compact('news'));
+        return view('pages.admin.news.index', compact('news'));
     }
 
     /**
@@ -27,7 +26,7 @@ class NewsController extends Controller
      */
     public function create()
     {
-        return view('admin.news.create');
+        return view('pages.admin.news.create');
     }
 
     /**
@@ -53,14 +52,14 @@ class NewsController extends Controller
         News::create([
             'title'         => $request->title,
             'author'        => $request->author,
-            // 'image'         => $request->image,
-            'image' => $image->hashName(),
+            'slug'          => Str::slug($request->title, '-'),
+            'image'         => $image->hashName(),
             'description'   => $request->description
         ]);
 
-        return redirect()->route('news.index')->with([
-            Alert::success('Success', 'Message Success')
-        ]);
+        return redirect()->route('dashboard.news.index')->with(
+            'success', 'Berhasil Menambahkan');
+
         return $image;
     }
 
@@ -71,7 +70,7 @@ class NewsController extends Controller
     {
         $news = News::findOrFail($id);
 
-        return view('admin.news.show', compact(
+        return view('pages.admin.news.show', compact(
             'news'
         ));
     }
@@ -83,7 +82,7 @@ class NewsController extends Controller
     {
         $news = News::findOrFail($id);
 
-        return view('admin.news.edit', compact(
+        return view('pages.admin.news.edit', compact(
             'news'
         ));
     }
@@ -106,7 +105,8 @@ class NewsController extends Controller
             $news->update([
                 'title'         => $request->title,
                 'author'        => $request->author,
-                'description'   => $request->description
+                'description'   => $request->description,
+                'slug'          => Str::slug($request->title, '-')
             ]);
         } else {
 
@@ -123,32 +123,30 @@ class NewsController extends Controller
                 'image'         => $image->hashName(),
                 'title'         => $request->title,
                 'author'        => $request->author,
-                'description'   => $request->description
+                'description'   => $request->description,
+                'slug'          => Str::slug($request->title, '-')
             ]);
         }
 
         if ($news) {
-            return redirect()->route('news.index')->with([
-                Alert::success('Success', 'Berhasil diupdate')
-            ]);
+            return redirect()->route('dashboard.news.index')->with(
+                'success', 'Berhasil Diupdate');
         } else {
-            return redirect()->route('news.index')->with([
-                Alert::error('Error', 'Gagal diupdate')
-            ]);
+            return redirect()->route('dashboard.news.index')->with(
+                'error', 'Gagal Diupdate');
         }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
         $news = News::findOrFail($id);
         Storage::disk('local')->delete('public/newss/' . basename($news->image));
         $news->delete();
 
-        return redirect()->route('news.index')->with([
-            Alert::success('Success', 'Berhasil dihapus')
-        ]);
+        return redirect()->route('dashboard.news.index')->with(
+            'success', 'Berhasil Didelete');
     }
 }

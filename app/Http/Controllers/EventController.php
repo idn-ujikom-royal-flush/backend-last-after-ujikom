@@ -6,6 +6,7 @@ use App\Models\Event;
 use Illuminate\Http\File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use RealRashid\SweetAlert\Facades\Alert;
 
@@ -19,7 +20,7 @@ class EventController extends Controller
     {
         $event = Event::latest()->paginate(10);
 
-        return view('admin.event.index', compact('event'));
+        return view('pages.admin.event.index', compact('event'));
     }
 
     /**
@@ -27,7 +28,7 @@ class EventController extends Controller
      */
     public function create()
     {
-        return view('admin.event.create');
+        return view('pages.admin.event.create');
     }
 
     /**
@@ -38,6 +39,8 @@ class EventController extends Controller
         $this->validate($request, [
             'title' => 'required',
             'image' => 'required|image|mimes:png,jpg,jpeg',
+            'date' => 'required',
+            'month' => 'required',
             'description' => 'required',
         ]);
 
@@ -52,12 +55,14 @@ class EventController extends Controller
         Event::create([
             'title'         => $request->title,
             'image'         => $image->hashName(),
+            'date'          => $request->date,
+            'month'         => $request->month,
+            'slug'          => Str::slug($request->title, '-'),
             'description'   => $request->description
         ]);
 
-        return redirect()->route('event.index')->with([
-            Alert::success('Success', 'Message Success')
-        ]);
+        return redirect()->route('dashboard.event.index')->with(
+            'success', 'Berhasil Tambahkan');
         return $image;
     }
 
@@ -66,10 +71,10 @@ class EventController extends Controller
      */
     public function show(string $id)
     {
-        $event = News::findOrFail($id);
+        $event = Event::findOrFail($id);
 
-        return view('admin.news.show', compact(
-            'news'
+        return view('pages.admin.event.show', compact(
+            'event'
         ));
     }
 
@@ -78,15 +83,62 @@ class EventController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $event = Event::findOrFail($id);
+
+        return view('pages.admin.event.edit', compact(
+            'event'
+        ));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Event $event)
     {
-        //
+        $this->validate($request, [
+            'title'  => 'required|unique:news,title,' . $event->id,
+        ]);
+
+        //check jika image kosong
+        if ($request->file('image') == null ) {
+
+            //update data tanpa image
+            $event = Event::findOrFail($event->id);
+            $event->update([
+                'title'         => $request->title,
+                'date'          => $request->date,
+                'month'         => $request->month,
+                'slug'          => Str::slug($request->title, '-'),
+                'description'   => $request->description
+            ]);
+        } else {
+
+            //hapus image lama
+            Storage::disk('local')->delete('public/events/' . basename($event->image));
+
+            //upload image baru
+            $image = $request->file('image');
+            $image->storeAs('public/events/', $image->hashName());
+
+            //update dengan image baru
+            $event = Event::findOrFail($event->id);
+            $event->update([
+                'title'         => $request->title,
+                'image'         => $image->hashName(),
+                'date'          => $request->date,
+                'month'         => $request->month,
+                'slug'          => Str::slug($request->title, '-'),
+                'description'   => $request->description
+            ]);
+        }
+
+        if ($event) {
+            return redirect()->route('dashboard.event.index')->with(
+                'success', 'Berhasil Diupdate');
+        } else {
+            return redirect()->route('dashboard.event.index')->with(
+                'error', 'Gagal Diupdate');
+        }
     }
 
     /**
@@ -94,6 +146,11 @@ class EventController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $event = Event::findOrFail($id);
+        Storage::disk('local')->delete('public/events/' . basename($event->image));
+        $event->delete();
+
+        return redirect()->route('dashboard.event.index')->with(
+            'success', 'Berhasil Didelete');
     }
 }

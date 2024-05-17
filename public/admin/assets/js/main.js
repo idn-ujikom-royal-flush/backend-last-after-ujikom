@@ -32,7 +32,7 @@
   }
 
   /**
-   * Easy on scroll event listener 
+   * Easy on scroll event listener
    */
   const onscroll = (el, listener) => {
     el.addEventListener('scroll', listener)
@@ -335,3 +335,14 @@
   }
 
 })();
+
+// document
+//     .getElementById("deleteButton")
+//     .addEventListener("click", function( e ){ //e => event
+//         if( ! confirm("Do you really want to delete this Image?") ){
+//             e.preventDefault(); // ! => don't want to do this
+//         } else {
+//             //want to do this! => maybe do something about it?
+//             alert('Ok, lets do this!');
+//         }
+//     });

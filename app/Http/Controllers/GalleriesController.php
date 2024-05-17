@@ -19,7 +19,7 @@ class GalleriesController extends Controller
 
         $gallery =  Galleries::latest()->paginate('3');
 
-        return view('admin.gallery.index', compact('gallery'));
+        return view('pages.admin.gallery.index', compact('gallery'));
 
 
     }
@@ -30,7 +30,7 @@ class GalleriesController extends Controller
     public function create()
     {
 
-        return view('admin.gallery.create');
+        return view('pages.admin.gallery.create');
 
     }
 
@@ -54,9 +54,8 @@ class GalleriesController extends Controller
             'image'=> $image->hashName(),
             'title'=> $request->title,
         ]);
-        return redirect()->route('gallery.index')->with([
-            Alert::success('Success', 'Message Success')
-        ]);
+        return redirect()->route('dashboard.gallery.index')->with(
+            'success', 'Berhasil Ditambahkan');
         return $image;
 
     }
@@ -94,8 +93,7 @@ class GalleriesController extends Controller
         Storage::disk('local')->delete('public/galleries/' . basename($gallery->image));
         $gallery->delete();
 
-        return redirect()->route('gallery.index')->with([
-            Alert::success('Success', 'Berhasil dihapus')
-        ]);
+        return redirect()->route('dashboard.gallery.index')->with(
+            'success', 'Berhasil Didelete');
     }
 }
