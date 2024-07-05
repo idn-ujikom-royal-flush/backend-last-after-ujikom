@@ -26,3 +26,4 @@ class News extends Model
         // use Illuminate\Database\Eloquent\Casts\Attribute;
     }
 }
+

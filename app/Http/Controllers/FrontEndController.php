@@ -12,7 +12,7 @@ class FrontEndController extends Controller
 {
     public function index()
     {
-        $lattest_news       = News::latest()->limit(3)->get();
+        $lattest_news = News::all();
 
         return view('pages.frontend.index', compact('lattest_news'));
     }
